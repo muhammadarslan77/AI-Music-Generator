@@ -4,6 +4,7 @@ import pretty_midi
 from io import BytesIO
 from pydub import AudioSegment
 import os
+import tempfile
 
 # Function to generate a random MIDI melody
 def generate_melody():
@@ -20,18 +21,26 @@ def generate_melody():
 
 # Function to convert MIDI to WAV using pydub
 def midi_to_wav(midi_data):
-    # Save the MIDI data to a temporary file
-    midi_file_path = 'temp_midi.mid'
-    midi_data.write(midi_file_path)
-    
-    # Convert the MIDI to WAV using pydub
-    sound = AudioSegment.from_file(midi_file_path, format="mid")
-    
-    # Export the sound to a WAV file
-    wav_file_path = 'temp_audio.wav'
-    sound.export(wav_file_path, format='wav')
-    
-    return wav_file_path
+    # Create a temporary directory
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        midi_file_path = os.path.join(tmpdirname, 'temp_midi.mid')
+        
+        # Save the MIDI data to a temporary file
+        midi_data.write(midi_file_path)
+        print(f"MIDI file written to: {midi_file_path}")  # Debug statement
+        
+        # Convert the MIDI to WAV using pydub
+        try:
+            sound = AudioSegment.from_file(midi_file_path, format="mid")
+        except Exception as e:
+            st.error(f"Error converting MIDI to WAV: {e}")
+            return None
+        
+        # Export the sound to a WAV file
+        wav_file_path = os.path.join(tmpdirname, 'temp_audio.wav')
+        sound.export(wav_file_path, format='wav')
+        
+        return wav_file_path
 
 # Streamlit app
 st.title("AI Music Generator 🎵")
@@ -50,21 +59,18 @@ if st.button('Generate Melody'):
     # Convert MIDI to WAV for playback
     wav_file_path = midi_to_wav(melody)
     
-    # Read the WAV file back into a BytesIO object for Streamlit
-    with open(wav_file_path, 'rb') as f:
-        wav_audio = BytesIO(f.read())
+    if wav_file_path:
+        # Read the WAV file back into a BytesIO object for Streamlit
+        with open(wav_file_path, 'rb') as f:
+            wav_audio = BytesIO(f.read())
 
-    # Streamlit audio playback for WAV
-    st.audio(wav_audio, format='audio/wav')
+        # Streamlit audio playback for WAV
+        st.audio(wav_audio, format='audio/wav')
 
-    # Allow user to download the MIDI file
-    st.download_button(
-        label="Download MIDI",
-        data=midi_file,
-        file_name="melody.mid",
-        mime="audio/midi"
-    )
-
-    # Clean up the temporary files after usage
-    os.remove(midi_file_path)
-    os.remove(wav_file_path)
+        # Allow user to download the MIDI file
+        st.download_button(
+            label="Download MIDI",
+            data=midi_file,
+            file_name="melody.mid",
+            mime="audio/midi"
+        )
