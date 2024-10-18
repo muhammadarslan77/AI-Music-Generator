@@ -3,14 +3,13 @@ import numpy as np
 import pretty_midi
 from io import BytesIO
 from pydub import AudioSegment
-from pydub.utils import which
 import os
 import tempfile
 
-# Specify the path to ffmpeg if necessary
-AudioSegment.converter = which("ffmpeg")
-AudioSegment.ffmpeg = which("ffmpeg")
-AudioSegment.ffprobe = which("ffprobe")
+# Set the paths to ffmpeg and ffprobe
+AudioSegment.converter = r'C:\Path\To\ffmpeg.exe'  # Update with the actual path to ffmpeg
+AudioSegment.ffmpeg = r'C:\Path\To\ffmpeg.exe'  # Same path for ffmpeg
+AudioSegment.ffprobe = r'C:\Path\To\ffprobe.exe'  # Update with the actual path to ffprobe
 
 # Function to generate a random MIDI melody
 def generate_melody():
