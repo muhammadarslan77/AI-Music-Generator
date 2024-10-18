@@ -1,10 +1,13 @@
 import streamlit as st
 import pretty_midi
 import numpy as np
+from pydub import AudioSegment
+import io
+import tempfile
 
 # Set up the Streamlit app interface
 st.title('AI Music Generator 🎵')
-st.write("Generate random melodies using AI and download them as MIDI files!")
+st.write("Generate random melodies using AI and download them as MIDI and WAV files!")
 
 # Sidebar options for user input
 st.sidebar.header("Melody Settings")
@@ -31,6 +34,13 @@ def generate_melody(num_notes, tempo):
     midi.instruments.append(instrument)
     return midi
 
+# Function to convert MIDI to WAV
+def midi_to_wav(midi):
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_midi:
+        midi.write(tmp_midi.name)
+        sound = AudioSegment.from_file(tmp_midi.name, format="mid")
+        return sound
+
 # Button to trigger melody generation
 if st.button('Generate Melody'):
     melody = generate_melody(num_notes, tempo)
@@ -39,15 +49,18 @@ if st.button('Generate Melody'):
     midi_file = 'random_melody.mid'
     melody.write(midi_file)
 
-    # Success message and audio player
+    # Convert MIDI to WAV
+    wav_audio = midi_to_wav(melody)
+    wav_file = io.BytesIO()
+    wav_audio.export(wav_file, format="wav")
+    wav_file.seek(0)
+    
+    # Display success message and play audio
     st.success('Melody generated!')
-    
-    # Check if the file has content
-    with open(midi_file, 'rb') as f:
-        midi_data = f.read()
-    
-    if midi_data:
-        st.audio(midi_file, format='audio/midi')
-        st.download_button('Download MIDI', data=midi_data, file_name='generated_melody.mid', mime='audio/midi')
-    else:
-        st.error('Error: The generated MIDI file has no sound. Please try again.')
+
+    # Play the WAV file in the app
+    st.audio(wav_file, format='audio/wav')
+
+    # Download buttons for MIDI and WAV
+    st.download_button('Download MIDI', data=open(midi_file, 'rb').read(), file_name='generated_melody.mid', mime='audio/midi')
+    st.download_button('Download WAV', data=wav_file, file_name='generated_melody.wav', mime='audio/wav')
