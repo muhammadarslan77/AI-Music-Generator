@@ -14,8 +14,11 @@ tempo = st.sidebar.slider('Tempo (BPM)', 60, 180, 120)
 # Function to generate a random melody
 def generate_melody(num_notes, tempo):
     midi = pretty_midi.PrettyMIDI()
-    instrument = pretty_midi.Instrument(program=0)  # Acoustic Grand Piano
-
+    
+    # Select an instrument (Acoustic Grand Piano)
+    instrument_program = pretty_midi.instrument_name_to_program('Acoustic Grand Piano')
+    instrument = pretty_midi.Instrument(program=instrument_program)
+    
     # Generate random notes
     for i in range(num_notes):
         note_number = np.random.randint(60, 72)  # Random note between C4 and B4
@@ -24,6 +27,7 @@ def generate_melody(num_notes, tempo):
         note = pretty_midi.Note(velocity=100, pitch=note_number, start=start_time, end=end_time)
         instrument.notes.append(note)
 
+    # Add instrument to the PrettyMIDI object
     midi.instruments.append(instrument)
     return midi
 
@@ -37,5 +41,13 @@ if st.button('Generate Melody'):
 
     # Success message and audio player
     st.success('Melody generated!')
-    st.audio(midi_file, format='audio/midi')
-    st.download_button('Download MIDI', data=open(midi_file, 'rb').read(), file_name='generated_melody.mid', mime='audio/midi')
+    
+    # Check if the file has content
+    with open(midi_file, 'rb') as f:
+        midi_data = f.read()
+    
+    if midi_data:
+        st.audio(midi_file, format='audio/midi')
+        st.download_button('Download MIDI', data=midi_data, file_name='generated_melody.mid', mime='audio/midi')
+    else:
+        st.error('Error: The generated MIDI file has no sound. Please try again.')
