@@ -3,8 +3,14 @@ import numpy as np
 import pretty_midi
 from io import BytesIO
 from pydub import AudioSegment
+from pydub.utils import which
 import os
 import tempfile
+
+# Specify the path to ffmpeg if necessary
+AudioSegment.converter = which("ffmpeg")
+AudioSegment.ffmpeg = which("ffmpeg")
+AudioSegment.ffprobe = which("ffprobe")
 
 # Function to generate a random MIDI melody
 def generate_melody():
@@ -21,7 +27,6 @@ def generate_melody():
 
 # Function to convert MIDI to WAV using pydub
 def midi_to_wav(midi_data):
-    # Create a temporary directory
     with tempfile.TemporaryDirectory() as tmpdirname:
         midi_file_path = os.path.join(tmpdirname, 'temp_midi.mid')
         
@@ -29,14 +34,12 @@ def midi_to_wav(midi_data):
         midi_data.write(midi_file_path)
         print(f"MIDI file written to: {midi_file_path}")  # Debug statement
         
-        # Convert the MIDI to WAV using pydub
         try:
             sound = AudioSegment.from_file(midi_file_path, format="mid")
         except Exception as e:
             st.error(f"Error converting MIDI to WAV: {e}")
             return None
         
-        # Export the sound to a WAV file
         wav_file_path = os.path.join(tmpdirname, 'temp_audio.wav')
         sound.export(wav_file_path, format='wav')
         
@@ -51,23 +54,18 @@ if st.button('Generate Melody'):
     melody = generate_melody()
     st.success('Melody generated!')
 
-    # Convert the generated melody to a MIDI file
     midi_file = BytesIO()
     melody.write(midi_file)
     midi_file.seek(0)
 
-    # Convert MIDI to WAV for playback
     wav_file_path = midi_to_wav(melody)
     
     if wav_file_path:
-        # Read the WAV file back into a BytesIO object for Streamlit
         with open(wav_file_path, 'rb') as f:
             wav_audio = BytesIO(f.read())
 
-        # Streamlit audio playback for WAV
         st.audio(wav_audio, format='audio/wav')
 
-        # Allow user to download the MIDI file
         st.download_button(
             label="Download MIDI",
             data=midi_file,
