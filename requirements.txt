@@ -1,4 +1,6 @@
 streamlit
 pretty_midi
 numpy
+pydub
 setuptools
+ffmpeg-python
