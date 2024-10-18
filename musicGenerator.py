@@ -5,6 +5,9 @@ from io import BytesIO
 from pydub import AudioSegment
 import os
 import tempfile
+AudioSegment.converter = "ffmpeg"
+AudioSegment.ffmpeg = "ffmpeg"
+AudioSegment.ffprobe = "ffprobe"
 
 # Set the paths to ffmpeg and ffprobe
 AudioSegment.converter = r'C:\Path\To\ffmpeg.exe'  # Update with the actual path to ffmpeg
