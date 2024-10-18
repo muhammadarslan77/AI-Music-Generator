@@ -1,10 +1,9 @@
 import streamlit as st
 import numpy as np
 import pretty_midi
-import os
 from io import BytesIO
 from pydub import AudioSegment
-import tempfile  # Import tempfile for creating temporary files
+import os
 
 # Function to generate a random MIDI melody
 def generate_melody():
@@ -22,19 +21,17 @@ def generate_melody():
 # Function to convert MIDI to WAV using pydub
 def midi_to_wav(midi_data):
     # Save the MIDI data to a temporary file
-    with tempfile.NamedTemporaryFile(suffix=".mid", delete=False) as tmp_midi:
-        midi_data.write(tmp_midi)
-        tmp_midi_path = tmp_midi.name
+    midi_file_path = 'temp_midi.mid'
+    midi_data.write(midi_file_path)
     
     # Convert the MIDI to WAV using pydub
-    sound = AudioSegment.from_file(tmp_midi_path, format="mid")
+    sound = AudioSegment.from_file(midi_file_path, format="mid")
     
     # Export the sound to a WAV file
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
-        sound.export(tmp_wav, format="wav")
-        tmp_wav_path = tmp_wav.name
+    wav_file_path = 'temp_audio.wav'
+    sound.export(wav_file_path, format='wav')
     
-    return tmp_wav_path
+    return wav_file_path
 
 # Streamlit app
 st.title("AI Music Generator 🎵")
@@ -67,3 +64,7 @@ if st.button('Generate Melody'):
         file_name="melody.mid",
         mime="audio/midi"
     )
+
+    # Clean up the temporary files after usage
+    os.remove(midi_file_path)
+    os.remove(wav_file_path)
